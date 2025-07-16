@@ -36,12 +36,19 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Debug network and container status
+        run: |
+          docker-compose ps
+          docker-compose logs app
+          docker-compose logs db
+          docker network ls
+          docker network inspect flask-docker-devops_default || true
       - name: Build and test Docker image
         run: |
           docker-compose up -d
-          # Wait for the app to be ready with a more robust check
+          # Wait for the app to be ready
           for i in {1..30}; do
-            if curl --output /dev/null --silent --head --fail http://localhost:5000; then
+            if curl --output /dev/null --silent --head --fail http://app:5000; then
               echo "App is up!"
               break
             else
@@ -50,11 +57,11 @@ jobs:
             fi
           done
           # Test the app
-          curl --retry 5 --retry-delay 5 http://localhost:5000 || exit 1
+          curl --retry 5 --retry-delay 5 http://app:5000 || exit 1
           docker-compose down
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
           context: .
           push: true
-          tags: yourusername/flask-app:latest
+          tags: farvezanzam/flask-app:latest
