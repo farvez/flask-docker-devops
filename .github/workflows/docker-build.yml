@@ -39,7 +39,17 @@ jobs:
       - name: Build and test Docker image
         run: |
           docker-compose up -d
-          sleep 10
+          # Wait for the app to be ready with a more robust check
+          for i in {1..30}; do
+            if curl --output /dev/null --silent --head --fail http://localhost:5000; then
+              echo "App is up!"
+              break
+            else
+              echo "Waiting for app..."
+              sleep 2
+            fi
+          done
+          # Test the app
           curl --retry 5 --retry-delay 5 http://localhost:5000 || exit 1
           docker-compose down
       - name: Build and push Docker image
