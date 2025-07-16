@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Task Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="bg-white p-6 rounded shadow-md w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-4">Task Manager</h1>
+        <div class="mb-4">
+            <input id="title" type="text" placeholder="Task Title" class="border p-2 w-full mb-2">
+            <input id="description" type="text" placeholder="Task Description" class="border p-2 w-full mb-2">
+            <button onclick="addTask()" class="bg-blue-500 text-white p-2 rounded">Add Task</button>
+        </div>
+        <ul id="taskList" class="list-disc pl-5"></ul>
+    </div>
+    <script>
+        async function fetchTasks() {
+            const response = await fetch('/tasks');
+            const tasks = await response.json();
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+            tasks.forEach(task => {
+                const li = document.createElement('li');
+                li.textContent = `${task.title}: ${task.description}`;
+                taskList.appendChild(li);
+            });
+        }
+
+        async function addTask() {
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            await fetch('/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, description })
+            });
+            fetchTasks();
+        }
+
+        fetchTasks();
+    </script>
+</body>
+</html>
